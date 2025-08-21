@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>數字分析工具（6→6/5/4 自動整合）</title>
+  <title>數字分析工具（v3.1.1 調試版）</title>
   <style>
     :root{--brand:#2463eb;--text:#111827;--muted:#6b7280;--border:#e5e7eb}
     *{box-sizing:border-box}
@@ -25,17 +25,18 @@
     .card-title{font-weight:800;margin:6px 0 8px}
     .section{margin-top:12px}
     .warn{color:#b45309;background:#fff7ed;border:1px solid #fed7aa;padding:8px 12px;border-radius:8px;display:none;margin-top:8px}
+    .debug{font-size:12px;color:#065f46;background:#ecfdf5;border:1px solid #a7f3d0;padding:8px 10px;border-radius:8px;margin-top:10px;display:none}
   </style>
 </head>
 <body>
   <div class="wrap">
-    <h1>數字分析工具</h1>
+    <h1>數字分析工具（6 → 6/5/4 整合）</h1>
     <div class="row">
       <input id="q" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="6" placeholder="輸入 6 碼，例如 321445" />
       <button id="go">查詢</button>
       <button id="clear" class="secondary" type="button">清除</button>
     </div>
-    <div class="muted">說明：讀取 <code>data/result_filtered_data.csv</code> 的「結果/開獎結果」欄。輸入 6 碼後，會自動以 <b>6 碼本身</b>、<b>末 5 碼</b>、<b>末 4 碼</b> 三組序列做統計整合（統計各序列「其後一碼」的次數與機率）。</div>
+    <div class="muted">會讀取 <code>data/result_filtered_data.csv</code> 的「結果 / 開獎結果」欄，統計指定序列在資料中出現後「下一碼」的次數。</div>
     <div id="warn" class="warn"></div>
 
     <div id="result" style="display:none;">
@@ -55,6 +56,8 @@
         <div style="font-weight:800;margin-bottom:6px">三組查詢結果</div>
         <div class="grid3" id="grids"></div>
       </div>
+
+      <div id="debug" class="debug"></div>
     </div>
   </div>
 
@@ -68,14 +71,16 @@ async function loadCSV() {
   if (!res.ok) throw new Error('讀取資料失敗：' + res.status);
   const text = await res.text();
   const rows = text.trim().split(/\\r?\\n/);
-  const header = rows.shift().split(',');
-  const idx = header.findIndex(h => ['結果','開獎結果'].includes(h.trim()));
-  if (idx === -1) throw new Error('CSV 內找不到「結果/開獎結果」欄位');
+  // 去除 BOM
+  const rawHeader = rows.shift();
+  const header = rawHeader.split(',').map(h => h.replace(/^\\ufeff/, '').trim());
+  const idx = header.findIndex(h => ['結果','開獎結果'].includes(h));
+  if (idx === -1) throw new Error('CSV 內找不到「結果/開獎結果」欄位（實際欄位：'+header.join(' | ')+')');
   const arr = [];
   for (const r of rows) {
     if (!r.trim()) continue;
     const cols = r.split(',');
-    const v = Number.parseInt(cols[idx],10);
+    const v = Number.parseInt((cols[idx]||'').trim(),10);
     if (Number.isFinite(v)) arr.push(v);
   }
   return arr;
@@ -88,10 +93,10 @@ function nextCounts(pattern, data){
   for (let i=0;i+n<data.length;i++){
     let ok = true;
     for (let j=0;j<n;j++){
-      if (data[i+j] !== pattern[j]) { ok=false; break; }
+      if (Number(data[i+j]) !== Number(pattern[j])) { ok=false; break; }
     }
     if (ok){
-      const nxt = data[i+n];
+      const nxt = Number(data[i+n]);
       if (counts[nxt]!=null) counts[nxt]++;
       matches++;
     }
@@ -155,11 +160,7 @@ function run(){
   }
   $('#warn').style.display='none';
 
-  // 三組：6碼本身、末5碼、末4碼
-  const p6 = raw;
-  const p5 = raw.slice(1);
-  const p4 = raw.slice(2);
-
+  const p6 = raw, p5 = raw.slice(1), p4 = raw.slice(2);
   const patterns = [
     {label:`${p6}`, arr: p6.split('').map(n=>+n)},
     {label:`${p5}`, arr: p5.split('').map(n=>+n)},
@@ -178,13 +179,27 @@ function run(){
   $('#bigSmall').textContent = s.bs;
   $('#agg').innerHTML = renderAgg(agg);
   $('#grids').innerHTML = stats.map(x=>renderTable(x.title, x.stat)).join('');
+
+  // Debug info
+  const dbg = [`資料筆數：${dataset.length}`].concat(stats.map(x => `${x.title.replace(' 查詢結果','')} 出現：${x.stat.total} 次（可統計下一碼的總數）`));
+  const hasAny = Object.values(agg).some(v => v>0);
+  const dbgBox = document.getElementById('debug');
+  dbgBox.style.display='block';
+  dbgBox.textContent = dbg.join('； ');
+  if (!hasAny){
+    dbgBox.textContent += '；整合為 0，可能原因：1) 這三組序列在資料中都沒有出現；2) 上線的 CSV 不是你本機那份；3) 欄位名或編碼（BOM）導致解析失敗。';
+  }
 }
 
-$('#go').addEventListener('click', run);
-$('#clear').addEventListener('click', ()=>{
-  $('#q').value=''; $('#result').style.display='none'; $('#warn').style.display='none'; $('#q').focus();
+document.getElementById('go').addEventListener('click', run);
+document.getElementById('clear').addEventListener('click', ()=>{
+  document.getElementById('q').value='';
+  document.getElementById('result').style.display='none';
+  document.getElementById('warn').style.display='none';
+  const dbg = document.getElementById('debug'); dbg.style.display='none'; dbg.textContent='';
+  document.getElementById('q').focus();
 });
-$('#q').addEventListener('keydown', (e)=>{ if(e.key==='Enter') run(); });
+document.getElementById('q').addEventListener('keydown', (e)=>{ if(e.key==='Enter') run(); });
 </script>
 </body>
 </html>
