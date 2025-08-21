@@ -2,58 +2,81 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="UTF-8">
-  <title>樂透統計分析 v2.4</title>
+  <title>開獎統計</title>
   <style>
-    body { font-family: Arial, sans-serif; margin: 40px; }
-    input { margin: 5px; padding: 5px; font-size: 16px; }
-    button { margin: 5px; padding: 5px 10px; font-size: 16px; }
-    #result { margin-top: 20px; white-space: pre-wrap; font-size: 16px; }
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background: #f9f9f9;
+    }
+    h1 {
+      color: #333;
+    }
+    label {
+      display: block;
+      margin-top: 10px;
+      font-weight: bold;
+    }
+    input {
+      padding: 5px;
+      margin-right: 10px;
+      width: 200px;
+    }
+    button {
+      padding: 5px 10px;
+      margin-top: 10px;
+    }
+    .result {
+      margin-top: 20px;
+      padding: 10px;
+      background: #fff;
+      border: 1px solid #ddd;
+    }
   </style>
 </head>
 <body>
-  <h2>樂透統計分析 v2.4</h2>
-  <label for="sixInput">輸入 6 碼：</label>
-  <input type="text" id="sixInput" maxlength="6">
+  <h1>開獎統計</h1>
+
+  <label>輸入 6 碼：</label>
+  <input type="text" id="input6" maxlength="6" placeholder="例如：123456">
   <button onclick="analyze()">分析</button>
   <button onclick="clearAll()">清除</button>
-  <div id="result"></div>
+
+  <div id="result6" class="result"></div>
+  <div id="result5" class="result"></div>
+  <div id="result4" class="result"></div>
 
   <script>
-    function runAnalysis(sequence) {
-        // TODO: 這裡放你的統計分析邏輯
-        // 目前只是示範顯示文字
-        return "輸入序列: " + sequence + " (統計結果示範)";
-    }
-
+    // 只要輸入 6 碼就會同時計算 6/5/4 碼結果
     function analyze() {
-        let six = document.getElementById("sixInput").value.trim();
+      const input6 = document.getElementById("input6").value.trim();
+      if (input6.length !== 6) {
+        alert("請輸入正確的 6 碼數字！");
+        return;
+      }
 
-        if (six.length !== 6) {
-            alert("請輸入完整的 6 碼！");
-            return;
-        }
+      // 6碼
+      document.getElementById("result6").innerText =
+        "6碼統計結果：" + input6;
 
-        // 自動拆成 6碼、5碼、4碼
-        let five = six.slice(1);
-        let four = six.slice(2);
+      // 5碼（取前 5 碼）
+      const input5 = input6.slice(0, 5);
+      document.getElementById("result5").innerText =
+        "5碼統計結果：" + input5;
 
-        let results = [];
-        results.push("【6碼分析】");
-        results.push(runAnalysis(six));
-
-        results.push("【5碼分析】");
-        results.push(runAnalysis(five));
-
-        results.push("【4碼分析】");
-        results.push(runAnalysis(four));
-
-        document.getElementById("result").innerText = results.join("\n\n");
+      // 4碼（取前 4 碼）
+      const input4 = input6.slice(0, 4);
+      document.getElementById("result4").innerText =
+        "4碼統計結果：" + input4;
     }
 
+    // 清除輸入與結果
     function clearAll() {
-        document.getElementById("sixInput").value = "";
-        document.getElementById("result").innerText = "";
-        document.getElementById("sixInput").focus();
+      document.getElementById("input6").value = "";
+      document.getElementById("result6").innerText = "";
+      document.getElementById("result5").innerText = "";
+      document.getElementById("result4").innerText = "";
+      document.getElementById("input6").focus();
     }
   </script>
 </body>
