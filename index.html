@@ -1,205 +1,297 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-Hant">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>數字分析工具（v3.1.1 調試版）</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>數字分析工具</title>
   <style>
-    :root{--brand:#2463eb;--text:#111827;--muted:#6b7280;--border:#e5e7eb}
-    *{box-sizing:border-box}
-    body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans TC",Arial,sans-serif;color:var(--text)}
-    .wrap{max-width:960px;margin:0 auto;padding:16px 16px 72px}
-    h1{font-size:28px;margin:8px 0 12px;font-weight:800}
-    .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
-    input[type=text]{height:42px;padding:0 12px;border:1px solid var(--border);border-radius:8px;font-size:16px;width:220px}
-    button{height:42px;padding:0 16px;border:0;border-radius:9px;background:var(--brand);color:#fff;font-weight:700;cursor:pointer}
-    button.secondary{background:#6b7280}
-    .muted{color:var(--muted);margin-top:4px}
-    .pill{border:2px solid #ef4444;border-radius:8px;padding:10px;display:inline-block;margin:6px 0;font-weight:700;background:#fff}
-    .grid3{display:grid;grid-template-columns:1fr;gap:16px;margin-top:10px}
-    @media(min-width:900px){.grid3{grid-template-columns:repeat(3,1fr)}}
-    table{width:100%;border-collapse:collapse;border:1px solid var(--border);border-radius:8px;overflow:hidden;background:#fff}
-    th,td{padding:8px 10px;border-bottom:1px solid var(--border);text-align:right;font-variant-numeric:tabular-nums}
-    th:first-child,td:first-child{text-align:left}
-    thead th{background:#f8fafc}
-    .card-title{font-weight:800;margin:6px 0 8px}
-    .section{margin-top:12px}
-    .warn{color:#b45309;background:#fff7ed;border:1px solid #fed7aa;padding:8px 12px;border-radius:8px;display:none;margin-top:8px}
-    .debug{font-size:12px;color:#065f46;background:#ecfdf5;border:1px solid #a7f3d0;padding:8px 10px;border-radius:8px;margin-top:10px;display:none}
+    :root{
+      --fg:#111;--muted:#6b7280;--border:#e5e7eb;--bg:#ffffff;--accent:#2563eb;
+    }
+    body{font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter,"Noto Sans TC","PingFang TC",system-ui,Helvetica,Arial,sans-serif;
+      margin:0;background:var(--bg);color:var(--fg);}
+    .wrap{max-width:980px;margin:32px auto;padding:0 16px;}
+    h1{font-size:28px;margin:8px 0 20px}
+    .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    input[type="tel"]{
+      font-size:18px;padding:10px 12px;border:1px solid var(--border);border-radius:10px;outline:none;width:280px;
+    }
+    input[type="tel"]:focus{border-color:#cbd5e1;box-shadow:0 0 0 3px #e5efff}
+    button{
+      border:1px solid var(--border);background:#f8fafc;border-radius:20px;padding:8px 16px;
+      font-size:16px;cursor:pointer;
+    }
+    button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+    button:disabled{opacity:.5;cursor:not-allowed}
+    .muted{color:var(--muted)}
+    .section{margin-top:18px}
+    .summary{font-size:16px;line-height:1.8}
+    .pill{display:inline-block;background:#f3f4f6;border:1px solid var(--border);padding:2px 8px;border-radius:999px;margin-right:6px}
+    .cards{display:grid;grid-template-columns:repeat(12,1fr);gap:14px;margin-top:12px}
+    .card{grid-column:span 12;border:1px solid var(--border);border-radius:8px;padding:12px}
+    @media(min-width:720px){
+      .card.third{grid-column:span 4}
+      .card.half{grid-column:span 6}
+    }
+    table{width:100%;border-collapse:collapse;font-size:14px}
+    th,td{border:1px solid var(--border);padding:6px 8px;text-align:center}
+    th{background:#f8fafc}
+    .hint{margin-top:8px}
+    .hr{height:1px;background:var(--border);margin:12px 0}
+    .redline{border:2px solid #ef4444;border-radius:6px;padding:10px;margin:10px 0}
+    .small{font-size:13px}
   </style>
 </head>
 <body>
   <div class="wrap">
-    <h1>數字分析工具（6 → 6/5/4 整合）</h1>
+    <h1>數字分析工具</h1>
+
     <div class="row">
-      <input id="q" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="6" placeholder="輸入 6 碼，例如 321445" />
-      <button id="go">查詢</button>
-      <button id="clear" class="secondary" type="button">清除</button>
+      <input id="seq" type="tel" inputmode="numeric" pattern="[0-9]*" maxlength="6"
+             placeholder="輸入六碼，例如123456" aria-label="輸入六碼">
+      <button id="search" class="primary" disabled>查詢</button>
+      <button id="clear">清除</button>
+      <span id="status" class="muted small"></span>
     </div>
-    <div class="muted">會讀取 <code>data/result_filtered_data.csv</code> 的「結果 / 開獎結果」欄，統計指定序列在資料中出現後「下一碼」的次數。</div>
-    <div id="warn" class="warn"></div>
 
-    <div id="result" style="display:none;">
-      <div class="section">
-        <div style="font-weight:800;margin-bottom:6px">加總結果摘要</div>
-        <div id="top3" class="muted"></div>
-        <div class="pill" id="oddEven"></div><br/>
-        <div class="pill" id="bigSmall"></div>
+    <div id="output" class="section" style="display:none">
+      <div class="card">
+        <div class="summary" id="sumHeader"></div>
+
+        <div class="redline" id="oddEvenLine"></div>
+        <div class="redline" id="bigSmallLine"></div>
+
+        <div class="section">
+          <h3 style="margin:0 0 8px">二組加總對比表</h3>
+          <div id="aggTable"></div>
+        </div>
       </div>
 
-      <div class="section">
-        <div style="font-weight:800;margin-bottom:6px">整合加總對比表</div>
-        <div id="agg"></div>
-      </div>
+      <div class="cards" id="detailCards"></div>
+    </div>
 
-      <div class="section">
-        <div style="font-weight:800;margin-bottom:6px">三組查詢結果</div>
-        <div class="grid3" id="grids"></div>
-      </div>
-
-      <div id="debug" class="debug"></div>
+    <div class="hint muted small">
+      資料來源：同目錄的 <span class="pill">result_filtered_data_fixed.csv</span>（需包含欄位「結果」）。<br>
+      使用方式：輸入 6 碼，按「查詢」。會同時查 <span class="pill">6碼</span>、<span class="pill">5碼</span>、<span class="pill">4碼</span> 並加總。
     </div>
   </div>
 
 <script>
-const CSV_PATH = 'data/result_filtered_data.csv';
-const $ = s => document.querySelector(s);
-let dataset = [];
+(() => {
+  const CSV_PATH = 'result_filtered_data_fixed.csv'; // 與 index.html 放一起
+  const $ = sel => document.querySelector(sel);
 
-async function loadCSV() {
-  const res = await fetch(CSV_PATH, {cache:'no-store'});
-  if (!res.ok) throw new Error('讀取資料失敗：' + res.status);
-  const text = await res.text();
-  const rows = text.trim().split(/\\r?\\n/);
-  // 去除 BOM
-  const rawHeader = rows.shift();
-  const header = rawHeader.split(',').map(h => h.replace(/^\\ufeff/, '').trim());
-  const idx = header.findIndex(h => ['結果','開獎結果'].includes(h));
-  if (idx === -1) throw new Error('CSV 內找不到「結果/開獎結果」欄位（實際欄位：'+header.join(' | ')+')');
-  const arr = [];
-  for (const r of rows) {
-    if (!r.trim()) continue;
-    const cols = r.split(',');
-    const v = Number.parseInt((cols[idx]||'').trim(),10);
-    if (Number.isFinite(v)) arr.push(v);
-  }
-  return arr;
-}
+  const els = {
+    seq: $('#seq'),
+    search: $('#search'),
+    clear: $('#clear'),
+    status: $('#status'),
+    output: $('#output'),
+    sumHeader: $('#sumHeader'),
+    oddEvenLine: $('#oddEvenLine'),
+    bigSmallLine: $('#bigSmallLine'),
+    aggTable: $('#aggTable'),
+    detailCards: $('#detailCards'),
+  };
 
-function nextCounts(pattern, data){
-  const n = pattern.length;
-  const counts = {1:0,2:0,3:0,4:0,5:0,6:0};
-  let matches = 0;
-  for (let i=0;i+n<data.length;i++){
-    let ok = true;
-    for (let j=0;j<n;j++){
-      if (Number(data[i+j]) !== Number(pattern[j])) { ok=false; break; }
+  let dataArr = [];   // [1,2,3, ...]
+  let ready = false;
+
+  // 讀檔 + 解析
+  async function loadCSV() {
+    els.status.textContent = '載入資料…';
+    try {
+      const res = await fetch(CSV_PATH, {cache: 'no-store'});
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const text = await res.text();
+
+      // 解析 CSV：找欄位「結果」
+      const lines = text.replace(/\r/g,'').split('\n').filter(x=>x.trim().length);
+      if (lines.length === 0) throw new Error('空檔案');
+      const header = lines[0].replace(/^\uFEFF/,'');
+      const cols = header.split(',');
+      let idx = cols.findIndex(c => c.trim().replace(/"/g,'') === '結果');
+      if (idx < 0) idx = 0; // 找不到就用第一欄
+
+      dataArr = [];
+      for (let i=1;i<lines.length;i++){
+        const cells = splitCSVLine(lines[i]);
+        const v = (cells[idx] ?? '').toString().trim().replace(/"/g,'');
+        if (/^[1-6]$/.test(v)) dataArr.push(Number(v));
+      }
+      if (dataArr.length === 0) throw new Error('未解析到數據（結果欄位需為 1~6）');
+
+      ready = true;
+      els.status.textContent = `資料載入完成（${dataArr.length} 筆）`;
+      maybeToggleSearch();
+    } catch (e) {
+      console.error(e);
+      els.status.textContent = '資料檔案載入失敗，請確認 result_filtered_data_fixed.csv 與欄位名稱「結果」。';
     }
-    if (ok){
-      const nxt = Number(data[i+n]);
-      if (counts[nxt]!=null) counts[nxt]++;
-      matches++;
+  }
+
+  // 簡易 CSV 逐行分隔（處理引號）
+  function splitCSVLine(line){
+    const out = []; let cur = ''; let inQ = false;
+    for (let i=0;i<line.length;i++){
+      const ch = line[i];
+      if (ch === '"'){
+        if (inQ && line[i+1] === '"'){ cur += '"'; i++; }
+        else inQ = !inQ;
+      }else if(ch===',' && !inQ){
+        out.push(cur); cur='';
+      }else cur += ch;
     }
+    out.push(cur);
+    return out;
   }
-  const total = Object.values(counts).reduce((a,b)=>a+b,0);
-  return {counts, total, matches};
-}
 
-function renderTable(title, stat){
-  let rows='';
-  for (let d=1; d<=6; d++){
-    const c = stat.counts[d]||0;
-    const pct = stat.total ? Math.round(c*100/stat.total) : 0;
-    rows += `<tr><td>${d}</td><td style="text-align:right">${c}</td><td style="text-align:right">${pct}%</td></tr>`;
+  // 驗證與 UI 控制
+  function sanitizeDigits(v){
+    return (v||'').replace(/\D/g,'').slice(0,6);
   }
-  return `<div><div class="card-title">${title}</div>
-  <table><thead><tr><th>數字</th><th>次數</th><th>機率</th></tr></thead><tbody>${rows}</tbody></table></div>`;
-}
-
-function aggregate(stats){
-  const agg={1:0,2:0,3:0,4:0,5:0,6:0};
-  stats.forEach(s=>{ for(let d=1;d<=6;d++) agg[d]+= (s.counts[d]||0); });
-  return agg;
-}
-
-function renderAgg(agg){
-  const total = Object.values(agg).reduce((a,b)=>a+b,0);
-  const arr = Object.entries(agg).map(([d,c])=>({d:+d,c:+c})).sort((a,b)=> b.c-a.c || a.d-b.d);
-  const rows = arr.map(({d,c})=>{
-    const pct = total? Math.round(c*100/total):0;
-    return `<tr><td>${d}</td><td style="text-align:right">${c}</td><td style="text-align:right">${pct}%</td></tr>`;
-  }).join('');
-  return `<table><thead><tr><th>數字</th><th>次數</th><th>機率</th></tr></thead><tbody>${rows}</tbody></table>`;
-}
-
-function summary(agg){
-  const arr=[]; for(let d=1;d<=6;d++){ arr.push({d, c:agg[d]||0}); }
-  arr.sort((a,b)=> b.c-a.c || a.d-b.d);
-  const top3 = arr.slice(0,3).map(x=> `${x.d} (${x.c}次)`).join('，');
-  const odd=(agg[1]||0)+(agg[3]||0)+(agg[5]||0);
-  const even=(agg[2]||0)+(agg[4]||0)+(agg[6]||0);
-  const big=(agg[4]||0)+(agg[5]||0)+(agg[6]||0);
-  const small=(agg[1]||0)+(agg[2]||0)+(agg[3]||0);
-  let oe = `單 ${odd}，雙 ${even} → ` + (odd>even?`單比雙多 ${odd-even} 次`: even>odd?`雙比單多 ${even-odd} 次`:`一樣多`);
-  let bs = `大 ${big}，小 ${small} → ` + (big>small?`大比小多 ${big-small} 次`: small>big?`小比大多 ${small-big} 次`:`一樣多`);
-  return {top3:`前三名：${top3}`, oe, bs};
-}
-
-async function main(){
-  try{ dataset = await loadCSV(); }
-  catch(e){ $('#warn').style.display='block'; $('#warn').textContent=e.message; }
-}
-main();
-
-function run(){
-  const raw = $('#q').value.trim();
-  if (!/^[0-9]{6}$/.test(raw)){
-    $('#warn').style.display='block';
-    $('#warn').textContent='請輸入 6 碼數字（例如 321445）';
-    return;
+  function maybeToggleSearch(){
+    els.search.disabled = !(ready && els.seq.value.length === 6);
   }
-  $('#warn').style.display='none';
 
-  const p6 = raw, p5 = raw.slice(1), p4 = raw.slice(2);
-  const patterns = [
-    {label:`${p6}`, arr: p6.split('').map(n=>+n)},
-    {label:`${p5}`, arr: p5.split('').map(n=>+n)},
-    {label:`${p4}`, arr: p4.split('').map(n=>+n)},
-  ];
+  // 核心分析：找出 pattern 後一碼的分布（1..6）
+  function analyzePattern(patternStr){
+    const pat = patternStr.split('').map(n=>Number(n));
+    const L = pat.length;
+    const counts = {1:0,2:0,3:0,4:0,5:0,6:0};
+    let total = 0;
 
-  const stats = patterns.map(p => ({ title:`${p.label} 查詢結果`, stat: nextCounts(p.arr, dataset) }));
+    for (let i=0;i+L < dataArr.length;i++){
+      let ok = true;
+      for (let j=0;j<L;j++){
+        if (dataArr[i+j] !== pat[j]) { ok = false; break; }
+      }
+      if (ok){
+        const nxt = dataArr[i+L];
+        counts[nxt]++; total++;
+      }
+    }
 
-  const agg = aggregate(stats.map(s=>s.stat));
-  const s = summary(agg);
-
-  // Render
-  $('#result').style.display='block';
-  $('#top3').innerHTML = s.top3;
-  $('#oddEven').textContent = s.oe;
-  $('#bigSmall').textContent = s.bs;
-  $('#agg').innerHTML = renderAgg(agg);
-  $('#grids').innerHTML = stats.map(x=>renderTable(x.title, x.stat)).join('');
-
-  // Debug info
-  const dbg = [`資料筆數：${dataset.length}`].concat(stats.map(x => `${x.title.replace(' 查詢結果','')} 出現：${x.stat.total} 次（可統計下一碼的總數）`));
-  const hasAny = Object.values(agg).some(v => v>0);
-  const dbgBox = document.getElementById('debug');
-  dbgBox.style.display='block';
-  dbgBox.textContent = dbg.join('； ');
-  if (!hasAny){
-    dbgBox.textContent += '；整合為 0，可能原因：1) 這三組序列在資料中都沒有出現；2) 上線的 CSV 不是你本機那份；3) 欄位名或編碼（BOM）導致解析失敗。';
+    // 單雙 / 大小
+    let odd=0, even=0, big=0, small=0;
+    for (let d=1; d<=6; d++){
+      const c = counts[d];
+      if (d%2===0) even+=c; else odd+=c;
+      if (d>=4) big+=c; else small+=c;
+    }
+    return {pattern: patternStr, counts, total, odd, even, big, small};
   }
-}
 
-document.getElementById('go').addEventListener('click', run);
-document.getElementById('clear').addEventListener('click', ()=>{
-  document.getElementById('q').value='';
-  document.getElementById('result').style.display='none';
-  document.getElementById('warn').style.display='none';
-  const dbg = document.getElementById('debug'); dbg.style.display='none'; dbg.textContent='';
-  document.getElementById('q').focus();
-});
-document.getElementById('q').addEventListener('keydown', (e)=>{ if(e.key==='Enter') run(); });
+  function render(){
+    const full = els.seq.value;
+    const p6 = full;
+    const p5 = full.slice(1);
+    const p4 = full.slice(2);
+
+    const r6 = analyzePattern(p6);
+    const r5 = analyzePattern(p5);
+    const r4 = analyzePattern(p4);
+
+    // 加總
+    const agg = {counts:{1:0,2:0,3:0,4:0,5:0,6:0}, total:0, odd:0, even:0, big:0, small:0};
+    [r6,r5,r4].forEach(r=>{
+      agg.total += r.total;
+      agg.odd   += r.odd;
+      agg.even  += r.even;
+      agg.big   += r.big;
+      agg.small += r.small;
+      for (let d=1; d<=6; d++) agg.counts[d] += r.counts[d];
+    });
+
+    // 前三名（依次數）
+    const top = Object.entries(agg.counts)
+      .map(([d,c])=>({d:Number(d),c}))
+      .sort((a,b)=>b.c-a.c)
+      .slice(0,3);
+
+    const topTxt = top.map(t=>`${t.d}（${t.c}次）`).join('，');
+    els.sumHeader.innerHTML =
+      `<div class="summary">
+        <div style="margin-bottom:6px" class="muted">前三名：<b>${topTxt||'—'}</b></div>
+        <div class="muted small">查詢序列：
+          <span class="pill">${r6.pattern}</span>
+          <span class="pill">${r5.pattern}</span>
+          <span class="pill">${r4.pattern}</span>
+        </div>
+      </div>`;
+
+    // 單雙 / 大小文案（紅框）
+    const oddEvenDiff = Math.abs(agg.even - agg.odd);
+    const oddEvenLead = (agg.even >= agg.odd) ? '雙' : '單';
+    els.oddEvenLine.innerHTML =
+      `單 <b>${agg.odd}</b> ，雙 <b>${agg.even}</b> → <b>${oddEvenLead}</b>比${oddEvenLead==='雙'?'單':'雙'}多 <b>${oddEvenDiff}</b> 次`;
+
+    const bigSmallDiff = Math.abs(agg.big - agg.small);
+    const bigSmallLead = (agg.big >= agg.small) ? '大' : '小';
+    els.bigSmallLine.innerHTML =
+      `大 <b>${agg.big}</b> ，小 <b>${agg.small}</b> → <b>${bigSmallLead}</b>比${bigSmallLead==='大'?'小':'大'}多 <b>${bigSmallDiff}</b> 次`;
+
+    // 二組加總對比表（依總次數排序）
+    els.aggTable.innerHTML = buildTable(
+      [['數字','次數','機率']].concat(
+        Object.entries(agg.counts)
+          .map(([d,c])=>({d:Number(d),c, p: agg.total? Math.round(c*100/agg.total):0}))
+          .sort((a,b)=>b.c-a.c)
+          .map(x=>[x.d, x.c, `${x.p}%`])
+      )
+    );
+
+    // 個別結果卡片（1~6 正序）
+    els.detailCards.innerHTML = '';
+    [r6,r5,r4].forEach((r,idx)=>{
+      const table = buildTable(
+        [['數字','次數','機率']].concat(
+          [...Array(6)].map((_,i)=>{
+            const d=i+1, c=r.counts[d];
+            const p = r.total? Math.round(c*100/r.total):0;
+            return [d,c,`${p}%`];
+          })
+        )
+      );
+      const card = document.createElement('div');
+      card.className = 'card third';
+      card.innerHTML = `<h3 style="margin:0 0 8px">${r.pattern} 查詢結果</h3>${table}`;
+      els.detailCards.appendChild(card);
+    });
+
+    els.output.style.display = 'block';
+  }
+
+  function buildTable(rows){
+    let html = '<table><thead><tr>';
+    rows[0].forEach(h=> html += `<th>${h}</th>`);
+    html += '</tr></thead><tbody>';
+    for (let i=1;i<rows.length;i++){
+      html += '<tr>' + rows[i].map(v=>`<td>${v}</td>`).join('') + '</tr>';
+    }
+    html += '</tbody></table>';
+    return html;
+  }
+
+  // 事件
+  els.seq.addEventListener('input',()=>{
+    els.seq.value = sanitizeDigits(els.seq.value);
+    maybeToggleSearch();
+  });
+  els.search.addEventListener('click',()=>{
+    if (els.seq.value.length !== 6) return;
+    render();
+  });
+  els.clear.addEventListener('click',()=>{
+    els.seq.value = '';
+    els.output.style.display = 'none';
+    maybeToggleSearch();
+    els.seq.focus();
+  });
+
+  // 初始化
+  loadCSV();
+})();
 </script>
 </body>
 </html>
