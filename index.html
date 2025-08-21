@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>數字分析工具（進階版 v2.1）</title>
+  <title>數字分析工具（進階版 v2.1+清除鍵）</title>
   <style>
     :root { --brand:#1a73e8; --bg:#fff; --text:#111827; --muted:#6b7280; --border:#e5e7eb; }
     *{box-sizing:border-box}
@@ -42,6 +42,8 @@
       <div class="field"><label for="q5">輸入5碼</label><input id="q5" type="text" placeholder="例如 23456"  inputmode="numeric" pattern="[0-9]*"></div>
       <div class="field"><label for="q4">輸入4碼</label><input id="q4" type="text" placeholder="例如 3456"   inputmode="numeric" pattern="[0-9]*"></div>
       <button id="goBtn">整合查詢</button>
+      <!-- 只新增清除鍵 -->
+      <button id="clearBtn" type="button" style="background:#6b7280">清除</button>
     </div>
     <div class="muted" id="hint">請同時填入 6 碼、5 碼、4 碼（皆為 1~6 的數字）。</div>
 
@@ -197,7 +199,17 @@
       $('#foot').textContent = `統計方式：在資料中搜尋每組序列的出現位置（皆以數字比對），統計「其後一碼」次數後整合加總。欄位名稱支援「結果／開獎結果」。`;
     }
 
+    // 只新增：清除鍵行為
+    function clearAll(){
+      ['q6','q5','q4'].forEach(id => { const el = document.getElementById(id); el.value=''; });
+      document.getElementById('results').style.display='none';
+      document.getElementById('debug').style.display='none';
+      document.getElementById('warn').style.display='none';
+      document.getElementById('q6').focus();
+    }
+
     document.getElementById('goBtn').addEventListener('click', go);
+    document.getElementById('clearBtn').addEventListener('click', clearAll);
     ['q6','q5','q4'].forEach(id => { document.getElementById(id).addEventListener('keydown', (e)=>{ if(e.key==='Enter') go(); }); });
 
     document.getElementById('goBtn').disabled=true;
