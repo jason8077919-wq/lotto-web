@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>數字分析工具</title>
+  <title>數字分析工具（6→6/5/4 自動整合）</title>
   <style>
     :root{--brand:#2463eb;--text:#111827;--muted:#6b7280;--border:#e5e7eb}
     *{box-sizing:border-box}
@@ -11,7 +11,7 @@
     .wrap{max-width:960px;margin:0 auto;padding:16px 16px 72px}
     h1{font-size:28px;margin:8px 0 12px;font-weight:800}
     .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
-    input[type=text]{height:42px;padding:0 12px;border:1px solid var(--border);border-radius:8px;font-size:16px;width:200px}
+    input[type=text]{height:42px;padding:0 12px;border:1px solid var(--border);border-radius:8px;font-size:16px;width:220px}
     button{height:42px;padding:0 16px;border:0;border-radius:9px;background:var(--brand);color:#fff;font-weight:700;cursor:pointer}
     button.secondary{background:#6b7280}
     .muted{color:var(--muted);margin-top:4px}
@@ -25,18 +25,17 @@
     .card-title{font-weight:800;margin:6px 0 8px}
     .section{margin-top:12px}
     .warn{color:#b45309;background:#fff7ed;border:1px solid #fed7aa;padding:8px 12px;border-radius:8px;display:none;margin-top:8px}
-    a.badlink{color:#2563eb;text-decoration:none}
   </style>
 </head>
 <body>
   <div class="wrap">
     <h1>數字分析工具</h1>
     <div class="row">
-      <input id="q" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="輸入 數字，例如6133" />
+      <input id="q" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="6" placeholder="輸入 6 碼，例如 321445" />
       <button id="go">查詢</button>
       <button id="clear" class="secondary" type="button">清除</button>
     </div>
-    <div class="muted">說明：讀取 <code>data/result_filtered_data.csv</code> 的「結果/開獎結果」欄。會以您輸入的數字建立三組序列：<b>43 + 輸入</b>、<b>3 + 輸入</b>、<b>輸入本身</b>，搜尋每組序列在資料中的出現位置，並統計「其後一碼」的次數與機率。</div>
+    <div class="muted">說明：讀取 <code>data/result_filtered_data.csv</code> 的「結果/開獎結果」欄。輸入 6 碼後，會自動以 <b>6 碼本身</b>、<b>末 5 碼</b>、<b>末 4 碼</b> 三組序列做統計整合（統計各序列「其後一碼」的次數與機率）。</div>
     <div id="warn" class="warn"></div>
 
     <div id="result" style="display:none;">
@@ -48,7 +47,7 @@
       </div>
 
       <div class="section">
-        <div style="font-weight:800;margin-bottom:6px">二組加總對比表</div>
+        <div style="font-weight:800;margin-bottom:6px">整合加總對比表</div>
         <div id="agg"></div>
       </div>
 
@@ -62,13 +61,13 @@
 <script>
 const CSV_PATH = 'data/result_filtered_data.csv';
 const $ = s => document.querySelector(s);
-let series = [];
+let dataset = [];
 
 async function loadCSV() {
   const res = await fetch(CSV_PATH, {cache:'no-store'});
   if (!res.ok) throw new Error('讀取資料失敗：' + res.status);
   const text = await res.text();
-  const rows = text.trim().split(/\r?\n/);
+  const rows = text.trim().split(/\\r?\\n/);
   const header = rows.shift().split(',');
   const idx = header.findIndex(h => ['結果','開獎結果'].includes(h.trim()));
   if (idx === -1) throw new Error('CSV 內找不到「結果/開獎結果」欄位');
@@ -141,33 +140,33 @@ function summary(agg){
   return {top3:`前三名：${top3}`, oe, bs};
 }
 
-let dataset=[];
 async function main(){
-  try{
-    dataset = await loadCSV();
-  }catch(e){
-    $('#warn').style.display='block';
-    $('#warn').textContent=e.message;
-  }
+  try{ dataset = await loadCSV(); }
+  catch(e){ $('#warn').style.display='block'; $('#warn').textContent=e.message; }
 }
 main();
 
 function run(){
   const raw = $('#q').value.trim();
-  if (!raw || !/^[0-9]+$/.test(raw)){
+  if (!/^[0-9]{6}$/.test(raw)){
     $('#warn').style.display='block';
-    $('#warn').textContent='請輸入純數字（例如 6133）';
+    $('#warn').textContent='請輸入 6 碼數字（例如 321445）';
     return;
   }
   $('#warn').style.display='none';
 
+  // 三組：6碼本身、末5碼、末4碼
+  const p6 = raw;
+  const p5 = raw.slice(1);
+  const p4 = raw.slice(2);
+
   const patterns = [
-    {label:`43${raw}`, arr: ('43'+raw).split('').map(n=>+n)},
-    {label:`3${raw}`, arr: ('3'+raw).split('').map(n=>+n)},
-    {label:`${raw}`, arr: (raw).split('').map(n=>+n)},
+    {label:`${p6}`, arr: p6.split('').map(n=>+n)},
+    {label:`${p5}`, arr: p5.split('').map(n=>+n)},
+    {label:`${p4}`, arr: p4.split('').map(n=>+n)},
   ];
 
-  const stats = patterns.map(p => ({title:`${p.label} 查詢結果`, stat: nextCounts(p.arr, dataset)}));
+  const stats = patterns.map(p => ({ title:`${p.label} 查詢結果`, stat: nextCounts(p.arr, dataset) }));
 
   const agg = aggregate(stats.map(s=>s.stat));
   const s = summary(agg);
