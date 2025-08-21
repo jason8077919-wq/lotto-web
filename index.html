@@ -1,53 +1,58 @@
-
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="zh-Hant">
 <head>
-    <meta charset="UTF-8">
-    <title>樂透統計工具 v2.4</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 30px; }
-        h1 { color: #333; }
-        input { margin: 5px; padding: 5px; font-size: 16px; }
-        button { margin: 5px; padding: 5px 10px; font-size: 16px; }
-        .result { margin-top: 20px; padding: 10px; border: 1px solid #ccc; }
-    </style>
+  <meta charset="UTF-8">
+  <title>樂透統計網站 v2.2</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 30px; background: #f9f9f9; }
+    h1 { color: #333; }
+    .input-group { margin: 10px 0; }
+    label { display: inline-block; width: 50px; }
+    input { padding: 5px; width: 200px; }
+    button { margin: 5px; padding: 8px 15px; }
+    #result { margin-top: 20px; padding: 15px; background: #fff; border: 1px solid #ddd; }
+  </style>
 </head>
 <body>
-    <h1>樂透統計工具 v2.4</h1>
-    <label>輸入6碼：</label>
-    <input type="text" id="input6" maxlength="6" placeholder="例如：123456">
-    <button onclick="analyze()">分析</button>
-    <button onclick="clearAll()">清除</button>
+  <h1>樂透統計查詢 v2.2</h1>
+  <div class="input-group">
+    <label>6碼</label><input type="text" id="input6" maxlength="6">
+  </div>
+  <div class="input-group">
+    <label>5碼</label><input type="text" id="input5" maxlength="5">
+  </div>
+  <div class="input-group">
+    <label>4碼</label><input type="text" id="input4" maxlength="4">
+  </div>
+  <button onclick="analyze()">整合查詢</button>
+  <button onclick="clearAll()">清除</button>
+  <div id="result" style="display:none;"></div>
 
-    <div id="results" class="result" style="display:none;"></div>
-
-    <script>
-        function analyze() {
-            let input6 = document.getElementById("input6").value.trim();
-
-            if (input6.length !== 6 || isNaN(input6)) {
-                alert("請輸入正確的6碼數字");
-                return;
-            }
-
-            let input5 = input6.slice(1);  // 後5碼
-            let input4 = input6.slice(2);  // 後4碼
-
-            let html = "<h3>分析結果</h3>";
-            html += "<p>6碼輸入：" + input6 + "</p>";
-            html += "<p>→ 自動分析5碼：" + input5 + "</p>";
-            html += "<p>→ 自動分析4碼：" + input4 + "</p>";
-
-            document.getElementById("results").style.display = "block";
-            document.getElementById("results").innerHTML = html;
-        }
-
-        function clearAll() {
-            document.getElementById("input6").value = "";
-            document.getElementById("results").style.display = "none";
-            document.getElementById("results").innerHTML = "";
-            document.getElementById("input6").focus();
-        }
-    </script>
+  <script>
+    function analyze() {
+      const v6 = document.getElementById("input6").value.trim();
+      const v5 = document.getElementById("input5").value.trim();
+      const v4 = document.getElementById("input4").value.trim();
+      if(!v6 && !v5 && !v4){
+        alert("請至少輸入一組號碼");
+        return;
+      }
+      // 模擬計算結果
+      let output = "<h3>查詢結果</h3>";
+      if(v6) output += "6碼輸入：" + v6 + "<br>";
+      if(v5) output += "5碼輸入：" + v5 + "<br>";
+      if(v4) output += "4碼輸入：" + v4 + "<br>";
+      output += "<p>(這裡會顯示實際統計結果)</p>";
+      document.getElementById("result").innerHTML = output;
+      document.getElementById("result").style.display = "block";
+    }
+    function clearAll() {
+      document.getElementById("input6").value = "";
+      document.getElementById("input5").value = "";
+      document.getElementById("input4").value = "";
+      document.getElementById("result").style.display = "none";
+      document.getElementById("input6").focus();
+    }
+  </script>
 </body>
 </html>
