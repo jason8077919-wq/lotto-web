@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>數字分析工具</title>
+  <title>數字分析工具（進階版）</title>
   <style>
     :root {
       --brand: #1a73e8;
@@ -11,168 +11,82 @@
       --text: #111827;
       --muted: #6b7280;
       --border: #e5e7eb;
-      --highlight: #fef3c7;
     }
     * { box-sizing: border-box; }
     body {
-      margin: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", "Helvetica Neue", Arial, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      line-height: 1.5;
+      margin:0; background:var(--bg); color:var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", "Helvetica Neue", Arial, sans-serif;
+      line-height:1.5;
     }
-    .container {
-      max-width: 900px;
-      margin: 0 auto;
-      padding: 20px 16px 64px;
-    }
-    h1 {
-      font-size: 28px;
-      margin: 16px 0 20px;
-      font-weight: 800;
-      letter-spacing: .02em;
-    }
-    .search-row {
-      display: flex;
-      gap: 12px;
-      align-items: center;
-      margin-bottom: 20px;
-    }
+    .container { max-width: 1000px; margin: 0 auto; padding: 20px 16px 64px; }
+    h1 { font-size: 28px; margin: 8px 0 16px; font-weight: 800; letter-spacing: .02em; }
+    .row { display:flex; gap:10px; align-items:center; flex-wrap: wrap; }
+    .field { display:flex; align-items:center; gap:8px; }
+    .field label { min-width: 62px; color: var(--muted); font-weight:700; }
     input[type="text"] {
-      flex: 1 1 auto;
-      height: 44px;
-      padding: 0 14px;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      font-size: 16px;
-      outline: none;
+      width: 180px; height: 44px; padding: 0 12px;
+      border:1px solid var(--border); border-radius:8px; font-size:16px;
     }
-    input[type="text"]::placeholder { color: #9ca3af; }
-    button {
-      height: 44px;
-      padding: 0 18px;
-      border: 0;
-      border-radius: 22px;
-      background: var(--brand);
-      color: #fff;
-      font-weight: 700;
-      font-size: 16px;
-      cursor: pointer;
-    }
-    button:disabled { opacity: 0.6; cursor: not-allowed; }
+    button { height:44px; padding:0 18px; border:0; border-radius:22px; background:var(--brand); color:#fff; font-weight:700; cursor:pointer; }
+    button:disabled { opacity:.6; cursor:not-allowed; }
     .muted { color: var(--muted); }
-    .section-title {
-      margin: 18px 0 8px;
-      font-size: 18px;
-      font-weight: 800;
-    }
-    .summary-badges {
-      display: grid;
-      gap: 10px;
-      margin: 12px 0 14px;
-    }
-    .badge {
-      border: 1.5px solid #ef4444;
-      border-radius: 8px;
-      padding: 10px 12px;
-      background: #fff;
-      font-weight: 700;
-    }
-    .tables {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 16px;
-    }
-    @media (min-width: 720px) {
-      .tables { grid-template-columns: repeat(3, 1fr); }
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      overflow: hidden;
-      background: #fff;
-    }
-    caption, .table-title {
-      text-align: left;
-      font-weight: 800;
-      margin: 4px 0 8px;
-    }
-    thead th {
-      background: #f9fafb;
-      color: #111827;
-      font-size: 14px;
-      border-bottom: 1px solid var(--border);
-    }
-    th, td {
-      padding: 8px 10px;
-      text-align: right;
-      border-bottom: 1px solid var(--border);
-      font-variant-numeric: tabular-nums;
-    }
-    th:first-child, td:first-child { text-align: left; }
-    tbody tr:last-child td { border-bottom: 0; }
-    .note { font-size: 13px; color: var(--muted); }
-    .hidden { display: none; }
-    .pill {
-      display: inline-block;
-      background: #eef2ff;
-      color: #3730a3;
-      padding: 2px 8px;
-      border-radius: 999px;
-      font-size: 12px;
-      font-weight: 700;
-      margin-left: 6px;
-      vertical-align: middle;
-    }
-    .top3 { margin-bottom: 8px; }
-    .divider { height: 1px; background: var(--border); margin: 16px 0; }
+    .section-title { font-weight:800; margin:18px 0 8px; font-size:18px; }
+    .badge { border:1.5px solid #ef4444; border-radius:8px; padding:10px 12px; background:#fff; font-weight:700; }
+    .badges { display:grid; gap:10px; margin:10px 0 12px; }
+    .grid3 { display:grid; grid-template-columns:1fr; gap:16px; }
+    @media (min-width: 900px) { .grid3 { grid-template-columns: repeat(3, 1fr); } }
+    table { width:100%; border-collapse:collapse; border:1px solid var(--border); background:#fff; border-radius:8px; overflow:hidden; }
+    th, td { padding:8px 10px; border-bottom:1px solid var(--border); text-align:right; font-variant-numeric: tabular-nums; }
+    th:first-child, td:first-child { text-align:left; }
+    thead th { background:#f9fafb; }
+    .card-title { font-weight:800; margin:4px 0 8px; }
+    .divider { height:1px; background:var(--border); margin:16px 0; }
+    .note { font-size:13px; color:var(--muted); }
+    .warn { color:#b45309; background:#fff7ed; border:1px solid #fed7aa; padding:8px 12px; border-radius:8px; }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>數字分析工具</h1>
+    <h1>數字分析工具（進階版）</h1>
 
-    <div class="search-row">
-      <input id="query" type="text" placeholder="輸入 數字，例如123456" inputmode="numeric" pattern="[0-9]*" />
-      <button id="searchBtn">查詢</button>
+    <div class="row">
+      <div class="field"><label for="q6">輸入6碼</label><input id="q6" type="text" placeholder="例如 123456" inputmode="numeric" pattern="[0-9]*"></div>
+      <div class="field"><label for="q5">輸入5碼</label><input id="q5" type="text" placeholder="例如 23456"  inputmode="numeric" pattern="[0-9]*"></div>
+      <div class="field"><label for="q4">輸入4碼</label><input id="q4" type="text" placeholder="例如 3456"   inputmode="numeric" pattern="[0-9]*"></div>
+      <button id="goBtn">整合查詢</button>
     </div>
+    <div class="muted" id="hint">請同時填入 6 碼、5 碼、4 碼（皆為 1~6 的數字），系統會把三個查詢的統計加總後呈現摘要與表格。</div>
 
-    <div id="results" class="hidden">
-      <div class="section-title">加總結果摘要</div>
-      <div id="top3" class="top3 muted"></div>
-      <div class="summary-badges">
+    <div id="results" style="display:none;">
+      <div class="section-title">整合結果摘要</div>
+      <div id="top3" class="muted"></div>
+      <div class="badges">
         <div id="oddEven" class="badge"></div>
         <div id="bigSmall" class="badge"></div>
       </div>
 
-      <div class="section-title">二組加總對比表</div>
+      <div class="section-title">整合加總對比表</div>
       <div id="aggTable"></div>
 
       <div class="divider"></div>
-      <div class="tables" id="patternTables"></div>
-      <div id="footnote" class="note"></div>
+      <div class="section-title">各查詢結果</div>
+      <div id="patternTables" class="grid3"></div>
+
+      <div id="foot" class="note"></div>
     </div>
 
-    <div id="hint" class="muted">輸入 1~6 的數字序列（例如：6133），按「查詢」。</div>
+    <div id="warn" class="warn" style="display:none;"></div>
   </div>
 
   <script>
-    // CSV path relative to this HTML
     const CSV_PATH = 'data/result_filtered_data.csv';
+    let data = [];
+    const $ = (s)=>document.querySelector(s);
 
-    // Globals
-    let data = []; // array of ints 1..6
-    const $ = (sel) => document.querySelector(sel);
-
-    // Load CSV once
     async function loadCSV() {
       const res = await fetch(CSV_PATH);
       if (!res.ok) throw new Error('讀取資料失敗：' + res.status);
       const text = await res.text();
-      // very small CSV parser tailored to the expected file
-      // Expecting a header with a column named "結果"
       const rows = text.trim().split(/\r?\n/);
       const header = rows.shift().split(',');
       const idx = header.findIndex(h => h.trim() === '結果');
@@ -181,199 +95,122 @@
       for (const r of rows) {
         if (!r.trim()) continue;
         const cols = r.split(',');
-        const val = parseInt(cols[idx], 10);
-        if (!Number.isNaN(val)) out.push(val);
+        const v = parseInt(cols[idx],10);
+        if (!Number.isNaN(v)) out.push(v);
       }
       return out;
     }
 
-    function digitsOnly(str) { return /^[0-9]+$/.test(str); }
-
-    // Find counts of next number after each occurrence of pattern
     function nextCounts(patternArr, data) {
       const n = patternArr.length;
       const counts = {1:0,2:0,3:0,4:0,5:0,6:0};
-      let totalMatches = 0;
-      for (let i = 0; i + n < data.length; i++) {
+      let matches = 0;
+      for (let i=0; i+n < data.length; i++) {
         let ok = true;
-        for (let j = 0; j < n; j++) {
-          if (data[i+j] !== patternArr[j]) { ok = false; break; }
-        }
-        if (ok) {
-          const nextVal = data[i+n];
-          counts[nextVal]++;
-          totalMatches++;
-        }
+        for (let j=0;j<n;j++){ if (data[i+j]!==patternArr[j]){ ok=false; break; } }
+        if (ok){ counts[data[i+n]]++; matches++; }
       }
-      const total = Object.values(counts).reduce((a,b)=>a+b,0);
-      return { counts, totalMatches: totalMatches, total };
+      return {counts, total: Object.values(counts).reduce((a,b)=>a+b,0), matches};
     }
 
-    // Find last occurrence index of pattern in data; return index or -1
-    function lastIndexOfPattern(patternArr, data) {
-      const n = patternArr.length;
-      for (let i = data.length - n; i >= 0; i--) {
-        let ok = true;
-        for (let j = 0; j < n; j++) {
-          if (data[i+j] !== patternArr[j]) { ok = false; break; }
-        }
-        if (ok) return i;
+    function renderTable(title, stat){
+      let rows='';
+      for(let d=1; d<=6; d++){
+        const c = stat.counts[d]||0;
+        const pct = stat.total ? Math.round(c*100/stat.total) : 0;
+        rows += `<tr><td>${d}</td><td style="text-align:right">${c}</td><td style="text-align:right">${pct}%</td></tr>`;
       }
-      return -1;
+      return `<div><div class="card-title">${title}</div><table><thead><tr><th>數字</th><th>次數</th><th>機率</th></tr></thead><tbody>${rows}</tbody></table></div>`;
     }
 
-    function makeTable(title, stat) {
-      const total = stat.total;
-      const rows = [];
-      for (let d = 1; d <= 6; d++) {
-        const c = stat.counts[d] || 0;
-        const pct = total ? Math.round(c * 100 / total) : 0;
-        rows.push(`<tr><td>${d}</td><td style="text-align:right">${c}</td><td style="text-align:right">${pct}%</td></tr>`);
-      }
-      return `
-        <div>
-          <div class="table-title">${title}</div>
-          <table>
-            <thead><tr><th>數字</th><th>次數</th><th>機率</th></tr></thead>
-            <tbody>
-              ${rows.join('\n')}
-            </tbody>
-          </table>
-        </div>`;
-    }
-
-    function renderAggTable(title, aggCounts) {
-      const total = Object.values(aggCounts).reduce((a,b)=>a+b,0);
-      // sort by count desc (digit asc on tie)
-      const entries = Object.entries(aggCounts).map(([k,v])=>({d:+k, c:v}));
-      entries.sort((a,b)=> b.c - a.c || a.d - b.d);
-      const rows = entries.map(({d,c}) => {
-        const pct = total ? Math.round(c * 100 / total) : 0;
-        return `<tr><td>${d}</td><td style="text-align:right">${c}</td><td style="text-align:right">${pct}%</td></tr>`;
-      }).join('\n');
-      return `
-        <table>
-          <thead><tr><th>數字</th><th>次數</th><th>機率</th></tr></thead>
-          <tbody>${rows}</tbody>
-        </table>`;
-    }
-
-    function summaryFromAgg(agg) {
-      const total = Object.values(agg).reduce((a,b)=>a+b,0) || 0;
-      const arr = [];
-      for (let d=1; d<=6; d++) arr.push({d, c: agg[d]||0});
-      arr.sort((a,b)=> b.c-a.c || a.d-b.d);
-      const top3 = arr.slice(0,3).map(x => `${x.d} (${x.c}次)`);
-      const odd = (agg[1]||0)+(agg[3]||0)+(agg[5]||0);
-      const even = (agg[2]||0)+(agg[4]||0)+(agg[6]||0);
-      const big = (agg[4]||0)+(agg[5]||0)+(agg[6]||0);
-      const small = (agg[1]||0)+(agg[2]||0)+(agg[3]||0);
-
-      let oddEvenTxt = `單 ${odd}，雙 ${even} → `;
-      if (odd > even) oddEvenTxt += `單比雙多 ${odd-even} 次`;
-      else if (even > odd) oddEvenTxt += `雙比單多 ${even-odd} 次`;
-      else oddEvenTxt += `一樣多`;
-
-      let bigSmallTxt = `大 ${big}，小 ${small} → `;
-      if (big > small) bigSmallTxt += `大比小多 ${big-small} 次`;
-      else if (small > big) bigSmallTxt += `小比大多 ${small-big} 次`;
-      else bigSmallTxt += `一樣多`;
-
-      return { top3: `前三名：${top3.join('，')}`, oddEvenTxt, bigSmallTxt };
-    }
-
-    function aggregateCounts(stats) {
-      const agg = {1:0,2:0,3:0,4:0,5:0,6:0};
-      for (const s of stats) {
-        for (let d=1; d<=6; d++) agg[d] += (s.counts[d] || 0);
-      }
+    function aggregateCounts(stats){
+      const agg={1:0,2:0,3:0,4:0,5:0,6:0};
+      for(const s of stats){ for(let d=1;d<=6;d++) agg[d]+= (s.counts[d]||0); }
       return agg;
     }
 
-    function toPatternStr(arr) { return arr.join(''); }
+    function renderAggTable(agg){
+      const total = Object.values(agg).reduce((a,b)=>a+b,0);
+      const arr = Object.entries(agg).map(([d,c])=>({d:+d,c:+c})).sort((a,b)=> b.c-a.c || a.d-b.d);
+      const rows = arr.map(({d,c})=>{
+        const pct = total ? Math.round(c*100/total) : 0;
+        return `<tr><td>${d}</td><td style="text-align:right">${c}</td><td style="text-align:right">${pct}%</td></tr>`;
+      }).join('');
+      return `<table><thead><tr><th>數字</th><th>次數</th><th>機率</th></tr></thead><tbody>${rows}</tbody></table>`;
+    }
 
-    async function main() {
+    function summary(agg){
+      const total = Object.values(agg).reduce((a,b)=>a+b,0) || 0;
+      const arr = []; for(let d=1;d<=6;d++){ arr.push({d, c:agg[d]||0}); }
+      arr.sort((a,b)=> b.c-a.c || a.d-b.d);
+      const top3 = arr.slice(0,3).map(x=> `${x.d} (${x.c}次)`).join('，');
+      const odd=(agg[1]||0)+(agg[3]||0)+(agg[5]||0);
+      const even=(agg[2]||0)+(agg[4]||0)+(agg[6]||0);
+      const big=(agg[4]||0)+(agg[5]||0)+(agg[6]||0);
+      const small=(agg[1]||0)+(agg[2]||0)+(agg[3]||0);
+      let oe = `單 ${odd}，雙 ${even} → ` + (odd>even?`單比雙多 ${odd-even} 次`: even>odd?`雙比單多 ${even-odd} 次`:`一樣多`);
+      let bs = `大 ${big}，小 ${small} → ` + (big>small?`大比小多 ${big-small} 次`: small>big?`小比大多 ${small-big} 次`:`一樣多`);
+      return {top3:`前三名：${top3}`, oe, bs, total};
+    }
+
+    const onlyDigits = s => /^[0-9]+$/.test(s);
+
+    async function main(){
       try {
         data = await loadCSV();
-        $('#searchBtn').disabled = false;
-        $('#hint').textContent = '資料已載入，開始查詢吧！';
-      } catch (e) {
-        $('#hint').textContent = '讀取資料失敗：' + e.message;
+        $('#hint').textContent = `資料載入完成（筆數：${data.length}）。請輸入 6/5/4 碼後按「整合查詢」。`;
+        $('#goBtn').disabled=false;
+      } catch(e){
+        $('#hint').textContent = e.message;
         console.error(e);
       }
     }
 
-    function handleSearch() {
-      const q = $('#query').value.trim();
-      if (!q) return;
-      if (!digitsOnly(q)) {
-        alert('請輸入數字。');
+    function go(){
+      const q6 = $('#q6').value.trim();
+      const q5 = $('#q5').value.trim();
+      const q4 = $('#q4').value.trim();
+
+      if (!q6 || !q5 || !q4){
+        $('#warn').style.display='block';
+        $('#warn').textContent='請同時填入 6 碼、5 碼、4 碼。';
         return;
       }
-      // Turn into array of ints
-      const pattern = q.split('').map(x => parseInt(x,10));
-      // Build derived patterns using the last occurrence context
-      const lastIdx = lastIndexOfPattern(pattern, data);
-      const patterns = [pattern]; // base
-      let ctx1 = null, ctx2 = null;
-      if (lastIdx > 0) ctx1 = [data[lastIdx-1], ...pattern];
-      if (lastIdx > 1) ctx2 = [data[lastIdx-2], data[lastIdx-1], ...pattern];
-
-      const stats = [];
-      const titles = [];
-      // Always show base
-      stats.push(nextCounts(pattern, data));
-      titles.push(`${toPatternStr(pattern)} 查詢結果`);
-      // Show ctx1 and ctx2 blocks (if we can infer the preceding digits). Put them BEFORE the base, like in the screenshot.
-      const patternTables = [];
-      const patternStatsForAgg = [];
-
-      // Order in screenshot seems: longest first, then middle, then base. We'll follow that order.
-      if (ctx2) {
-        const s2 = nextCounts(ctx2, data);
-        stats.push(s2);
-        titles.push(`${toPatternStr(ctx2)} 查詢結果`);
+      if (!(onlyDigits(q6)&&q6.length===6) || !(onlyDigits(q5)&&q5.length===5) || !(onlyDigits(q4)&&q4.length===4)){
+        $('#warn').style.display='block';
+        $('#warn').textContent='格式錯誤：6 碼/5 碼/4 碼必須為純數字且長度正確。';
+        return;
       }
-      if (ctx1) {
-        const s1 = nextCounts(ctx1, data);
-        stats.push(s1);
-        titles.push(`${toPatternStr(ctx1)} 查詢結果`);
-      }
+      $('#warn').style.display='none';
 
-      // Recompose tables in the order: ctx2, ctx1, base
-      const blocks = [];
-      if (ctx2) blocks.push({title: `${toPatternStr(ctx2)} 查詢結果`, stat: nextCounts(ctx2, data)});
-      if (ctx1) blocks.push({title: `${toPatternStr(ctx1)} 查詢結果`, stat: nextCounts(ctx1, data)});
-      blocks.push({title: `${toPatternStr(pattern)} 查詢結果`, stat: nextCounts(pattern, data)});
+      const patterns = [
+        {label:`${q6} 查詢結果`, arr: q6.split('').map(n=>+n)},
+        {label:`${q5} 查詢結果`, arr: q5.split('').map(n=>+n)},
+        {label:`${q4} 查詢結果`, arr: q4.split('').map(n=>+n)},
+      ];
 
-      // Aggregate from all available (the blocks array)
-      const agg = aggregateCounts(blocks.map(b => b.stat));
-      const { top3, oddEvenTxt, bigSmallTxt } = summaryFromAgg(agg);
+      const stats = patterns.map(p => ({ title:p.label, stat: nextCounts(p.arr, data) }));
 
-      // Render summary
-      $('#results').classList.remove('hidden');
-      $('#top3').textContent = top3;
-      $('#oddEven').textContent = oddEvenTxt;
-      $('#bigSmall').textContent = bigSmallTxt;
-      $('#aggTable').innerHTML = renderAggTable('二組加總對比表', agg);
+      // 整合
+      const agg = aggregateCounts(stats.map(x=>x.stat));
+      const s = summary(agg);
 
-      // Render pattern tables
-      $('#patternTables').innerHTML = blocks.map(b => makeTable(b.title, b.stat)).join('');
+      // Render
+      $('#results').style.display='block';
+      $('#top3').textContent = s.top3;
+      $('#oddEven').textContent = s.oe;
+      $('#bigSmall').textContent = s.bs;
+      $('#aggTable').innerHTML = renderAggTable(agg);
 
-      // Footnote
-      const ctxInfo = (lastIdx >= 0)
-        ? `（延伸序列取自「最後一次出現 ${q}」之前的 1～2 個數字；若不存在則不顯示。）`
-        : '';
-      $('#footnote').textContent = `資料長度：${data.length}，查詢序列：${q}。${ctxInfo}`;
+      $('#patternTables').innerHTML = stats.map(x => renderTable(x.title, x.stat)).join('');
+
+      $('#foot').textContent = `已整合三組序列（6、5、4 碼）。統計方式：在資料中搜尋每組序列的出現位置，統計「其後一碼」的次數並加總。`;
     }
 
-    $('#searchBtn').addEventListener('click', handleSearch);
-    $('#query').addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') handleSearch();
-    });
+    $('#goBtn').addEventListener('click', go);
+    $('#q6,#q5,#q4'.split(',')).forEach(sel => $(sel).addEventListener('keydown', (e)=>{ if(e.key==='Enter') go(); }));
 
-    // Disable search until CSV is loaded
-    $('#searchBtn').disabled = true;
+    $('#goBtn').disabled=true;
     main();
   </script>
 </body>
